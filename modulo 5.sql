@@ -1,0 +1,178 @@
+-- ETAPA 5.1
+
+SELECT * FROM PRODUCTOS_NEPTUNO
+WHERE PRECIOUNIDAD > (SELECT AVG(PRECIOUNIDAD) FROM PRODUCTOS_NEPTUNO)
+ORDER BY NOMBREPRODUCTO;
+
+SELECT * FROM productos_neptuno
+where precioUnidad > (SELECT MAX(precioUnidad) FROM productos_suspendidos)
+ORDER BY precioUnidad DESC;
+
+SELECT * FROM VARONES
+WHERE SEMANAS < 
+(SELECT MIN(SEMANAS) FROM indeterminado);
+
+SELECT * FROM productos_neptuno
+WHERE LEFT(nombreProducto,1) =
+(SELECT LEFT(NOMBRE_EMPLEADO,1) FROM  empleados WHERE idEmpleado = 8)
+ORDER BY nombreProducto;
+
+SELECT * FROM productos_neptuno
+WHERE IdProveedor = 
+(SELECT MAX(idProveedor) FROM proveedores)
+ORDER BY nombreProducto;
+
+SELECT * FROM productos_neptuno
+WHERE NombreCategoria = 'Bebidas' AND
+precioUnidad >
+(SELECT MAX(PrecioUnidad) from productos_neptuno
+where NombreCategoria = 'Condimentos');
+
+SELECT * FROM MUJERES
+WHERE EDAD_MADRE >
+(SELECT MAX(EDAD_MADRE) FROM varones);
+
+SELECT NombreCompania, CIUDAD,PAIS FROM clientes_neptuno
+WHERE nombreCompania IN
+(SELECT nombreCompania FROM pedidos_Neptuno 
+WHERE CARGO > 500);
+
+-- ETAPA 5.2
+USE LABORATORIO_BD;
+
+SELECT idcliente, nombrecompania, ciudad, pais,
+CASE 
+WHEN pais IN ('ARGENTINA','BRASIL','VENEZUELA') THEN 'SUDAMÉRICA'
+WHEN pais IN ('MEXICO','USA','CANADA') THEN 'NORTEAMÉRICA'
+ELSE 'EUROPA' 
+END AS 'CONTINENTE' FROM clientes_neptuno
+ORDER BY CONTINENTE, PAIS;
+
+SELECT IdPedido, nombreCompania,FechaPedido,Cargo,
+CASE
+WHEN cargo >700 THEN 'EXCELENTE'
+WHEN cargo BETWEEN 500 AND 700 THEN 'MUY BUENO'
+WHEN cargo BETWEEN 250 AND 500 THEN 'BUENO'
+WHEN cargo BETWEEN 50 AND 250 THEN 'REGULAR'
+ELSE 'MALO'
+END AS 'EVALUACIÓN'
+FROM pedidos_neptuno
+ORDER BY cargo DESC;
+
+SELECT idproducto, nombreProducto, nombreCategoria, precioUnidad,
+CASE 
+WHEN precioUnidad > 100 THEN 'DELUXE'
+WHEN precioUnidad BETWEEN 10 AND 100 THEN 'REGULAR'
+ELSE 'ECONPOMICO'
+END AS TIPO
+FROM productos_neptuno
+order by precioUnidad DESC;
+
+-- etapa 5.3
+
+SELECT * FROM VARONES
+WHERE SEMANAS < 20
+UNION
+SELECT * FROM MUJERES
+WHERE SEMANAS <20
+UNION 
+SELECT * FROM INDETERMINADO
+WHERE SEMANAS <20;
+
+SELECT * FROM VARONES
+WHERE SEMANAS > 40 AND FECHA LIKE '%/09/%'
+AND NACIONALIDAD = 'CHILENA'
+AND ESTADO_CIVIL_MADRE = 'CASADA'
+UNION
+SELECT * FROM MUJERES
+WHERE SEMANAS > 40
+AND FECHA LIKE '%/09/%'
+AND NACIONALIDAD = 'CHILENA'
+AND ESTADO_CIVIL_MADRE = 'CASADA'
+UNION
+SELECT * FROM INDETERMINADO
+WHERE SEMANAS > 40
+AND FECHA LIKE '%/09/%'
+AND NACIONALIDAD = 'CHILENA'
+AND ESTADO_CIVIL_MADRE = 'CASADA';
+
+SELECT * FROM PRODUCTOS_NEPTUNO
+WHERE PRECIOUNIDAD > 80
+UNION 
+SELECT * FROM PRODUCTOS_SUSPENDIDOS
+WHERE PRECIOUNIDAD > 80
+ORDER BY PRECIOUNIDAD DESC;
+
+SELECT *, 'A LA VENTA' AS CONDICION 
+FROM PRODUCTOS_NEPTUNO
+WHERE PRECIOUNIDAD > 80
+UNION 
+SELECT *, 'SUSPENDIDO' AS CONDICION 
+FROM PRODUCTOS_SUSPENDIDOS
+WHERE PRECIOUNIDAD > 80
+ORDER BY PRECIOUNIDAD DESC;
+
+SELECT * FROM PRODUCTOS_NEPTUNO
+WHERE NOMBRECATEGORIA = 'BEBIDAS'
+UNION
+SELECT * FROM PRODUCTOS_SUSPENDIDOS
+WHERE NOMBRECATEGORIA = 'BEBIDAS'
+ORDER BY NOMBREPRODUCTO;
+
+INSERT INTO PRODUCTOS_SUSPENDIDOS
+(IDPRODUCTO, NOMBREPRODUCTO, NOMBRECONTACTO, NOMBRECATEGORIA, PRECIOUNIDAD, SUSPENDIDO, IDPROVEEDOR)
+SELECT IDPRODUCTO, NOMBREPRODUCTO,NOMBRECONTACTO,NOMBRECATEGORIA,PRECIOUNIDAD,SUSPENDIDO,IDPROVEEDOR
+FROM PRODUCTOS_NEPTUNO
+WHERE IDPRODUCTO=43;
+
+SELECT * FROM PRODUCTOS_NEPTUNO
+WHERE NOMBRECATEGORIA = 'BEBIDAS'
+UNION ALL
+SELECT * FROM PRODUCTOS_SUSPENDIDOS
+WHERE NOMBRECATEGORIA = 'BEBIDAS'
+ORDER BY NOMBREPRODUCTO;
+
+SET SQL_SAFE_UPDATES=0;
+DELETE FROM PRODUCTOS_SUSPENDIDOS WHERE IDPRODUCTO=43;
+
+-- etapa 5.4
+
+/*Generar una tabla con el nombre EQUIPOS, en la que sólo se cree un campo cuyo nombre sea EQUIPO. 
+Este campo debe ser de tipo VARCHAR, almacenar hasta 20 caracteres y debe ser PRIMARY KEY de la tabla.*/
+
+CREATE TABLE EQUIPOS(
+EQUIPO VARCHAR(20) PRIMARY KEY);
+
+/*cargar los nombres de las siguientes selecciones en la tabla EQUIPOS:
+ARGENTINA, BRASIL, PARAGUAY, CHILE, URUGUAY, COLOMBIA, ECUADOR, PERÚ, BOLIVIA, VENEZUELA*/
+
+INSERT INTO equipos
+VALUES ('ARGENTINA'), ('BRASIL'), ('PARAGUAY'),('CHILE'),('URUGUAY'),('COLOMBIA'),('ECUADOR'), ('PERÚ'),('BOLIVIA'), ('VENEZUELA');
+
+/*Generar un producto cartesiano en base a la misma tabla, para lograr un fixture en el cual cada selección juegue con las otras
+selecciones (un partido como local y otro como visitante). 
+Ordenar alfabéticamente el resultado, según el nombre del equipo local.*/
+
+SELECT * FROM EQUIPOS AS L CROSS JOIN EQUIPOS AS V
+WHERE L.equipo <> V.equipo
+ORDER BY L.EQUIPO; -- NO Olvidar espesificar la tabla.campo
+
+/*Crear un producto cartesiano restringido por el que se unan las tablas PRODUCTOS NEPTUNO y EMPLEADOS. 
+Luego, mostrar en el resultado de la consulta los siguientes campos IDPRODUCTO, NOMBREPRODUCTO
+y NOMBRE_EMPLEADO y sólo aquellas filas en las que el IDPRODUCTO coincida con el IDEMPLEADO.*/
+
+SELECT productos_neptuno.*, empleados.*
+FROM productos_neptuno JOIN empleados;
+
+SELECT productos_neptuno.IdProducto, productos_neptuno.NombreProducto, empleados.Nombre_Empleado
+FROM productos_neptuno JOIN empleados
+ON productos_neptuno.IdProducto = empleados.IdEmpleado;
+
+-- etapa 5.5
+
+
+
+
+
+
+
